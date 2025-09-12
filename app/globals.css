@@ -1,0 +1,127 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color tokens to match Disney food app design brief */
+  --background: oklch(1 0 0); /* #FFFFFF - Clean white background */
+  --foreground: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue for text */
+  --card: oklch(0.97 0.02 258.34); /* #F0F4FF - Light blue card background */
+  --card-foreground: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue card text */
+  --popover: oklch(1 0 0); /* #FFFFFF - White popover background */
+  --popover-foreground: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue popover text */
+  --primary: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue primary */
+  --primary-foreground: oklch(1 0 0); /* #FFFFFF - White text on primary */
+  --secondary: oklch(0.85 0.12 85.87); /* #FFD700 - Gold secondary */
+  --secondary-foreground: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue text on secondary */
+  --muted: oklch(0.75 0.05 258.34); /* #B0C4DE - Light steel blue muted */
+  --muted-foreground: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue muted text */
+  --accent: oklch(0.85 0.12 85.87); /* #FFD700 - Gold accent */
+  --accent-foreground: oklch(0.25 0.15 258.34); /* #003DA5 - Royal blue accent text */
+  --destructive: oklch(0.577 0.245 27.325); /* Keep existing destructive */
+  --destructive-foreground: oklch(1 0 0); /* White text on destructive */
+  --border: oklch(0.9 0.01 258.34); /* #E0E0E0 - Light gray border */
+  --input: oklch(0.97 0.02 258.34); /* #F0F4FF - Light blue input background */
+  --ring: oklch(0.25 0.15 258.34 / 0.2); /* Royal blue ring with transparency */
+  --chart-1: oklch(0.85 0.12 85.87); /* Gold */
+  --chart-2: oklch(0.25 0.15 258.34); /* Royal blue */
+  --chart-3: oklch(0.75 0.05 258.34); /* Light steel blue */
+  --chart-4: oklch(0.9 0.01 258.34); /* Light gray */
+  --chart-5: oklch(1 0 0); /* White */
+  --radius: 0.5rem; /* Slightly smaller radius for cleaner look */
+  --sidebar: oklch(0.97 0.02 258.34); /* Light blue sidebar */
+  --sidebar-foreground: oklch(0.25 0.15 258.34); /* Royal blue sidebar text */
+  --sidebar-primary: oklch(0.25 0.15 258.34); /* Royal blue sidebar primary */
+  --sidebar-primary-foreground: oklch(1 0 0); /* White sidebar primary text */
+  --sidebar-accent: oklch(0.85 0.12 85.87); /* Gold sidebar accent */
+  --sidebar-accent-foreground: oklch(0.25 0.15 258.34); /* Royal blue sidebar accent text */
+  --sidebar-border: oklch(0.9 0.01 258.34); /* Light gray sidebar border */
+  --sidebar-ring: oklch(0.25 0.15 258.34 / 0.2); /* Royal blue sidebar ring */
+}
+
+.dark {
+  /* ダークモード用の完全にアクセシブルなカラーパレット */
+  --background: oklch(0.08 0.02 258.34); /* #0A0F1C - Dark navy background */
+  --foreground: oklch(0.95 0.02 258.34); /* #F0F4FF - Light blue text */
+  --card: oklch(0.12 0.03 258.34); /* #1A2332 - Dark blue card background */
+  --card-foreground: oklch(0.95 0.02 258.34); /* #F0F4FF - Light blue card text */
+  --popover: oklch(0.12 0.03 258.34); /* #1A2332 - Dark blue popover background */
+  --popover-foreground: oklch(0.95 0.02 258.34); /* #F0F4FF - Light blue popover text */
+  --primary: oklch(0.45 0.18 258.34); /* #4A90E2 - Lighter royal blue primary */
+  --primary-foreground: oklch(0.95 0.02 258.34); /* #F0F4FF - Light blue text on primary for better contrast */
+  --secondary: oklch(0.35 0.08 85.87); /* #8B6914 - Much darker gold secondary for better contrast */
+  --secondary-foreground: oklch(0.95 0.02 258.34); /* #F0F4FF - Light blue text on secondary for excellent contrast */
+  --muted: oklch(0.25 0.05 258.34); /* #3A4A5C - Medium blue muted */
+  --muted-foreground: oklch(0.95 0.02 258.34); /* #F0F4FF - Light blue for excellent contrast */
+  --accent: oklch(0.75 0.15 85.87); /* #FFD700 - Brighter gold accent for better visibility in dark mode */
+  --accent-foreground: oklch(0.15 0.03 258.34); /* #242F3D - Dark text on bright accent for good contrast */
+  --destructive: oklch(0.55 0.25 27.325); /* Slightly darker destructive */
+  --destructive-foreground: oklch(0.95 0.02 258.34); /* Light blue text on destructive */
+  --border: oklch(0.25 0.05 258.34); /* #3A4A5C - Medium blue border */
+  --input: oklch(0.15 0.03 258.34); /* #242F3D - Dark blue input background */
+  --ring: oklch(0.45 0.18 258.34 / 0.3); /* Lighter royal blue ring with transparency */
+  --chart-1: oklch(0.75 0.15 85.87); /* Brighter gold for consistency */
+  --chart-2: oklch(0.45 0.18 258.34); /* Lighter royal blue */
+  --chart-3: oklch(0.55 0.08 258.34); /* Medium blue */
+  --chart-4: oklch(0.35 0.05 258.34); /* Dark blue */
+  --chart-5: oklch(0.15 0.03 258.34); /* Very dark blue */
+  --sidebar: oklch(0.1 0.02 258.34); /* #141A26 - Dark sidebar */
+  --sidebar-foreground: oklch(0.95 0.02 258.34); /* Light blue sidebar text */
+  --sidebar-primary: oklch(0.45 0.18 258.34); /* Lighter royal blue sidebar primary */
+  --sidebar-primary-foreground: oklch(0.95 0.02 258.34); /* Light blue sidebar primary text */
+  --sidebar-accent: oklch(0.75 0.15 85.87); /* Brighter gold sidebar accent for better visibility */
+  --sidebar-accent-foreground: oklch(0.15 0.03 258.34); /* Dark text on bright sidebar accent */
+  --sidebar-border: oklch(0.25 0.05 258.34); /* Medium blue sidebar border */
+  --sidebar-ring: oklch(0.45 0.18 258.34 / 0.3); /* Lighter royal blue sidebar ring */
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

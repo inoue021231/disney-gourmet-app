@@ -1,0 +1,65 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Search, Heart, MapPin, Settings } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+
+const NAV_ITEMS = [
+  {
+    id: "search",
+    label: "検索",
+    icon: Search,
+    href: "/",
+  },
+  {
+    id: "favorites",
+    label: "お気に入り",
+    icon: Heart,
+    href: "/favorites",
+  },
+  {
+    id: "restaurants",
+    label: "レストラン",
+    icon: MapPin,
+    href: "/restaurants",
+  },
+  {
+    id: "settings",
+    label: "設定",
+    icon: Settings,
+    href: "/settings",
+  },
+]
+
+export function BottomNavigation() {
+  const pathname = usePathname()
+  const router = useRouter()
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-around py-2">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+
+            return (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(item.href)}
+                className={`flex flex-col items-center gap-1 h-auto py-2 px-3 min-w-[44px] ${
+                  isActive ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? "fill-current" : ""}`} />
+                <span className="text-xs font-medium">{item.label}</span>
+              </Button>
+            )
+          })}
+        </div>
+      </div>
+    </nav>
+  )
+}
