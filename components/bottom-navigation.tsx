@@ -38,7 +38,7 @@ export function BottomNavigation() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-around py-2">
+        <div className="flex items-center justify-around py-3">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -49,11 +49,11 @@ export function BottomNavigation() {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(item.href)}
-                className={`flex flex-col items-center gap-1 h-auto py-2 px-3 min-w-[44px] ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 px-4 min-w-[60px] ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? "fill-current" : ""}`} />
+                <Icon className={`w-6 h-6 ${isActive ? "fill-current" : ""}`} />
                 <span className="text-xs font-medium">{item.label}</span>
               </Button>
             )

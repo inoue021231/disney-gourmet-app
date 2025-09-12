@@ -125,3 +125,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* プルトゥリフレッシュの色をテーマに合わせて調整 */
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}

@@ -139,59 +139,61 @@ export default function RestaurantsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Select value={selectedPark} onValueChange={handleParkChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="パーク" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全パーク</SelectItem>
-                  <SelectItem value="tdl">🏰 東京ディズニーランド</SelectItem>
-                  <SelectItem value="tds">🌊 東京ディズニーシー</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedArea} onValueChange={setSelectedArea}>
-                <SelectTrigger>
-                  <SelectValue placeholder="エリア" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">すべてのエリア</SelectItem>
-                  {availableAreas.map((area) => (
-                    <SelectItem key={area.value} value={area.value}>
-                      {area.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="space-y-2">
-                <Select value={operatingStatus} onValueChange={handleOperatingStatusChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="営業状況" />
+            <div className="space-y-3">
+              {/* 第1行: パーク・エリア・営業状況 */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <Select value={selectedPark} onValueChange={handleParkChange}>
+                  <SelectTrigger className="text-xs sm:text-sm">
+                    <SelectValue placeholder="パーク" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">すべて</SelectItem>
-                    <SelectItem value="open-now">現在営業中</SelectItem>
-                    <SelectItem value="open-at-time">指定時刻に営業中</SelectItem>
+                    <SelectItem value="all">全パーク</SelectItem>
+                    <SelectItem value="tdl">🏰 TDL</SelectItem>
+                    <SelectItem value="tds">🌊 TDS</SelectItem>
                   </SelectContent>
                 </Select>
-                
-                {operatingStatus === "open-at-time" && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="time"
-                      value={targetTime}
-                      onChange={(e) => setTargetTime(e.target.value)}
-                      className="flex-1"
-                      placeholder="時刻を選択"
-                    />
-                  </div>
-                )}
+
+                <Select value={selectedArea} onValueChange={setSelectedArea}>
+                  <SelectTrigger className="text-xs sm:text-sm">
+                    <SelectValue placeholder="エリア" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">すべてのエリア</SelectItem>
+                    {availableAreas.map((area) => (
+                      <SelectItem key={area.value} value={area.value}>
+                        {area.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <Select value={operatingStatus} onValueChange={handleOperatingStatusChange}>
+                    <SelectTrigger className="text-xs sm:text-sm">
+                      <SelectValue placeholder="営業状況" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">すべて</SelectItem>
+                      <SelectItem value="open-now">現在営業中</SelectItem>
+                      <SelectItem value="open-at-time">指定時刻</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              
+              {/* 第2行: 時刻入力（条件付き表示） */}
+              {operatingStatus === "open-at-time" && (
+                <div className="flex items-center gap-2 max-w-xs">
+                  <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <Input
+                    type="time"
+                    value={targetTime}
+                    onChange={(e) => setTargetTime(e.target.value)}
+                    className="flex-1 text-sm"
+                    placeholder="時刻を選択"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

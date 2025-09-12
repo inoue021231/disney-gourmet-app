@@ -7,6 +7,7 @@ import { BottomNavigation } from "@/components/bottom-navigation"
 import { ToastProvider } from "@/components/toast-provider"
 import { FavoritesProvider } from "@/components/favorites-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import { SplashScreen } from "@/components/splash-screen"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -56,6 +57,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="グルメ検索" />
+        <link rel="apple-touch-startup-image" href="/icon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#003DA5" />
         <meta name="msapplication-tap-highlight" content="no" />
@@ -64,8 +67,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <FavoritesProvider>
             <ToastProvider>
+              <SplashScreen />
               <Suspense fallback={null}>
-                <div className="pb-16 min-h-screen">{children}</div>
+                <div className="pb-20 min-h-screen">{children}</div>
                 <BottomNavigation />
               </Suspense>
             </ToastProvider>
