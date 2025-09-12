@@ -193,7 +193,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 className="w-full flex items-center gap-2 bg-transparent"
-                onClick={() => window.open("#", "_blank")}
+                onClick={() => window.open("/terms", "_blank")}
               >
                 <ExternalLink className="w-4 h-4" />
                 利用規約
@@ -202,7 +202,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 className="w-full flex items-center gap-2 bg-transparent"
-                onClick={() => window.open("#", "_blank")}
+                onClick={() => window.open("/privacy", "_blank")}
               >
                 <ExternalLink className="w-4 h-4" />
                 プライバシーポリシー
