@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Search, Heart, MapPin, Settings } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
+import { memo } from "react"
 
 const NAV_ITEMS = [
   {
@@ -31,9 +32,15 @@ const NAV_ITEMS = [
   },
 ]
 
-export function BottomNavigation() {
+const BottomNavigation = memo(function BottomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
+
+  const handleNavigation = (href: string) => {
+    if (pathname !== href) {
+      router.push(href)
+    }
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border">
@@ -48,7 +55,7 @@ export function BottomNavigation() {
                 key={item.id}
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push(item.href)}
+                onClick={() => handleNavigation(item.href)}
                 className={`flex flex-col items-center gap-2 h-auto py-3 px-4 min-w-[60px] ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
@@ -62,4 +69,6 @@ export function BottomNavigation() {
       </div>
     </nav>
   )
-}
+})
+
+export { BottomNavigation }

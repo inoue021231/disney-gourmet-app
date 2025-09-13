@@ -36,6 +36,17 @@ self.addEventListener("fetch", (event) => {
     return // Service Workerを通さず、直接fetchする
   }
 
+  // ナビゲーションリクエスト（ページ遷移）の場合は常にネットワークから取得
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // ネットワークエラーの場合はキャッシュから返す
+        return caches.match('/')
+      })
+    )
+    return
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       // キャッシュにあればそれを返す

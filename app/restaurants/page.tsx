@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,63 +73,69 @@ export default function RestaurantsPage() {
   const isMobile = useMobileDetection()
 
   // パーク変更時にエリアをリセット
-  const handleParkChange = (park: string) => {
+  const handleParkChange = useCallback((park: string) => {
     setSelectedPark(park)
     setSelectedArea("all")
     setCurrentPage(1) // ページをリセット
-  }
+  }, [])
 
   // 営業時間フィルター変更時の処理
-  const handleOperatingStatusChange = (status: string) => {
+  const handleOperatingStatusChange = useCallback((status: string) => {
     setOperatingStatus(status)
     if (status !== "open-at-time") {
       setTargetTime("17:00") // デフォルト時刻に戻す
     }
     setCurrentPage(1) // ページをリセット
-  }
+  }, [])
 
   // パークに応じたエリア選択肢を取得
   const availableAreas = getAreasByPark(selectedPark)
 
   const restaurants = apiRestaurants.length > 0 ? apiRestaurants : FALLBACK_RESTAURANTS
 
-  const filteredRestaurants = restaurants.filter((restaurant) => {
-    // 営業時間チェック - 営業していないレストランは常に非表示
-    const businessHoursParsed = parseBusinessHours(restaurant.business_hours)
-    if (!businessHoursParsed.isOpen) {
-      return false
-    }
-
-    // 営業時間フィルター
-    if (operatingStatus === "open-now") {
-      if (!isCurrentlyOpen(restaurant.business_hours)) {
+  const filteredRestaurants = useMemo(() => {
+    return restaurants.filter((restaurant) => {
+      // 営業時間チェック - 営業していないレストランは常に非表示
+      const businessHoursParsed = parseBusinessHours(restaurant.business_hours)
+      if (!businessHoursParsed.isOpen) {
         return false
       }
-    } else if (operatingStatus === "open-at-time") {
-      const targetMinutes = timeStringToMinutes(targetTime)
-      if (!isOpenAtTime(restaurant.business_hours, targetMinutes)) {
-        return false
+
+      // 営業時間フィルター
+      if (operatingStatus === "open-now") {
+        if (!isCurrentlyOpen(restaurant.business_hours)) {
+          return false
+        }
+      } else if (operatingStatus === "open-at-time") {
+        const targetMinutes = timeStringToMinutes(targetTime)
+        if (!isOpenAtTime(restaurant.business_hours, targetMinutes)) {
+          return false
+        }
       }
-    }
 
-    const matchesSearch =
-      matchesKanaSearch(restaurant.name, searchQuery) ||
-      (restaurant.description && matchesKanaSearch(restaurant.description, searchQuery))
-    
-    // パークフィルター（大文字小文字を統一して比較）
-    const matchesPark = selectedPark === "all" || 
-      restaurant.park.toLowerCase() === selectedPark.toLowerCase()
-    
-    const matchesArea = selectedArea === "all" || restaurant.area === selectedArea
+      const matchesSearch =
+        matchesKanaSearch(restaurant.name, searchQuery) ||
+        (restaurant.description && matchesKanaSearch(restaurant.description, searchQuery))
+      
+      // パークフィルター（大文字小文字を統一して比較）
+      const matchesPark = selectedPark === "all" || 
+        restaurant.park.toLowerCase() === selectedPark.toLowerCase()
+      
+      const matchesArea = selectedArea === "all" || restaurant.area === selectedArea
 
-    return matchesSearch && matchesPark && matchesArea
-  })
+      return matchesSearch && matchesPark && matchesArea
+    })
+  }, [restaurants, operatingStatus, targetTime, selectedPark, selectedArea, searchQuery])
 
   // ページネーション処理
-  const itemsPerPage = 10
-  const totalPages = Math.ceil(filteredRestaurants.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedRestaurants = filteredRestaurants.slice(startIndex, startIndex + itemsPerPage)
+  const paginationData = useMemo(() => {
+    const itemsPerPage = 10
+    const totalPages = Math.ceil(filteredRestaurants.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginatedRestaurants = filteredRestaurants.slice(startIndex, startIndex + itemsPerPage)
+    
+    return { itemsPerPage, totalPages, startIndex, paginatedRestaurants }
+  }, [filteredRestaurants, currentPage])
 
   return (
     <div className="min-h-screen bg-background">
@@ -259,7 +265,7 @@ export default function RestaurantsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {paginatedRestaurants.length === 0 ? (
+        {paginationData.paginatedRestaurants.length === 0 ? (
           <div className="text-center py-12">
             <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">条件に合うレストランは見つかりません</p>
@@ -284,7 +290,7 @@ export default function RestaurantsPage() {
                 ? 'grid-cols-2'
                 : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
             }`}>
-              {paginatedRestaurants.map((restaurant) => (
+              {paginationData.paginatedRestaurants.map((restaurant) => (
                 <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
                   <div className="aspect-[3/2] relative overflow-hidden bg-muted flex-shrink-0">
                     {restaurant.image && restaurant.image !== '/no-image-light.png' ? (
@@ -384,7 +390,7 @@ export default function RestaurantsPage() {
             </div>
 
             {/* ページネーション */}
-            {!isLoading && totalPages > 1 && (
+            {!isLoading && paginationData.totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-8">
                 <Button
                   variant="outline"
@@ -398,14 +404,14 @@ export default function RestaurantsPage() {
                 </Button>
 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, paginationData.totalPages) }, (_, i) => {
                     let page: number
-                    if (totalPages <= 5) {
+                    if (paginationData.totalPages <= 5) {
                       page = i + 1
                     } else if (currentPage <= 3) {
                       page = i + 1
-                    } else if (currentPage >= totalPages - 2) {
-                      page = totalPages - 4 + i
+                    } else if (currentPage >= paginationData.totalPages - 2) {
+                      page = paginationData.totalPages - 4 + i
                     } else {
                       page = currentPage - 2 + i
                     }
@@ -427,8 +433,8 @@ export default function RestaurantsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(paginationData.totalPages, prev + 1))}
+                  disabled={currentPage === paginationData.totalPages}
                   className="min-w-[44px] h-[44px]"
                 >
                   <ChevronRight className="w-4 h-4" />
