@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { Settings, Palette, Database, Info, ExternalLink, Heart, Trash2 } from "lucide-react"
+import { Settings, Palette, Database, Info, ExternalLink, Heart, Trash2, LogOut } from "lucide-react"
 import { useFavoritesContext } from "@/components/favorites-context"
 import { useToast } from "@/components/toast-provider"
 import { useTheme } from "next-themes"
@@ -31,6 +31,26 @@ export default function SettingsPage() {
 
   const handleThemeToggle = (checked: boolean) => {
     setTheme(checked ? "dark" : "light")
+  }
+
+  const handleLogout = async () => {
+    if (confirm("ログアウトしますか？")) {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+        })
+        
+        if (response.ok) {
+          showToast("ログアウトしました", "success")
+          // ページをリロードして認証画面に戻る
+          window.location.reload()
+        } else {
+          showToast("ログアウトに失敗しました", "error")
+        }
+      } catch (error) {
+        showToast("ログアウトに失敗しました", "error")
+      }
+    }
   }
 
   if (!mounted) {
@@ -76,7 +96,7 @@ export default function SettingsPage() {
               <div>
                 <p className="font-medium">お気に入り登録数</p>
                 <p className="text-sm text-muted-foreground">
-                  {favoriteCount}件のメニューがお気に入りに登録されています
+                  {favoriteCount}件がお気に入りに登録されています
                 </p>
               </div>
               <Badge variant="secondary">{favoriteCount}件</Badge>
@@ -206,6 +226,31 @@ export default function SettingsPage() {
               >
                 <ExternalLink className="w-4 h-4" />
                 プライバシーポリシー
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 認証設定 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LogOut className="w-5 h-5" />
+              認証設定
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                現在ログイン中です。ログアウトすると再度認証が必要になります。
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 bg-transparent text-destructive hover:text-destructive"
+              >
+                <LogOut className="w-4 h-4" />
+                ログアウト
               </Button>
             </div>
           </CardContent>
