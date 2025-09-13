@@ -369,7 +369,7 @@ export default function RestaurantsPage() {
                         className="w-full flex items-center gap-2 bg-transparent"
                         onClick={(e) => {
                           e.stopPropagation()
-                          window.open(`https://www.tokyodisneyresort.jp/${restaurant.park === 'tdl' ? 'tdl' : 'tds'}/restaurant/detail/${restaurant.id}/`, "_blank")
+                          window.open(`https://www.tokyodisneyresort.jp/${restaurant.park === 'TDL' ? 'tdl' : 'tds'}/restaurant/detail/${restaurant.id}/`, "_blank")
                         }}
                       >
                         <div className="flex items-center justify-center w-4 h-4 bg-primary/10 rounded">
