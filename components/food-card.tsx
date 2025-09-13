@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Star, ExternalLink } from "lucide-react"
+import { Heart, ExternalLink } from "lucide-react"
 import { useState } from "react"
 import { FoodItem } from "@/lib/database.types"
 
@@ -68,22 +68,22 @@ export function FoodCard({ item, onFavoriteToggle, onCardClick }: FoodCardProps)
             onFavoriteToggle(item.id)
           }}
         >
-          <Star className={`w-4 h-4 ${item.isFavorite ? "fill-current" : ""}`} />
+          <Heart className={`w-4 h-4 ${item.isFavorite ? "fill-current text-accent" : ""}`} />
         </Button>
       </div>
 
       <CardContent className="p-4 h-full flex flex-col">
         <div className="flex-1 space-y-3">
           <div className="space-y-2">
-            <h3 className="font-semibold text-card-foreground line-clamp-2 text-balance leading-tight">{item.title}</h3>
+            <h3 className="font-semibold text-card-foreground line-clamp-2 leading-tight break-words">{item.title}</h3>
             <p className="text-lg font-bold text-primary">{item.price}</p>
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground truncate">📍 {item.restaurant}</p>
+            <p className="text-xs text-muted-foreground truncate">{item.restaurant}</p>
             {item.park && (
               <p className="text-xs font-medium text-primary">
-                {item.park === 'tdl' ? '🏰 東京ディズニーランド' : '🌊 東京ディズニーシー'}
+                {item.park === 'tdl' ? '東京ディズニーランド' : '東京ディズニーシー'}
               </p>
             )}
           </div>
@@ -103,8 +103,10 @@ export function FoodCard({ item, onFavoriteToggle, onCardClick }: FoodCardProps)
               window.open(`https://www.tokyodisneyresort.jp/food/${item.id}/`, "_blank")
             }}
           >
-            <ExternalLink className="w-3 h-3" />
-            公式で詳細を見る
+            <div className="flex items-center justify-center w-4 h-4 bg-primary/10 rounded">
+              <ExternalLink className="w-2.5 h-2.5 text-primary" />
+            </div>
+            公式サイト
           </Button>
         </div>
       </CardContent>

@@ -11,6 +11,7 @@ import { useFavoritesContext } from "@/components/favorites-context"
 import { useToast } from "@/components/toast-provider"
 import { useFoods } from "@/hooks/use-foods"
 import { FoodItem } from "@/lib/database.types"
+import { matchesKanaSearch } from "@/lib/kana-conversion"
 
 // フォールバック用データ（実際のアプリではAPIから取得）
 const FALLBACK_FOODS = [
@@ -110,13 +111,13 @@ export default function FavoritesPage() {
   const filteredFavorites = useMemo(() => {
     let result = favoriteItems
 
-    // 検索クエリフィルター
+    // 検索クエリフィルター（ひらがな・カタカナ対応）
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim()
+      const query = searchQuery.trim()
       result = result.filter(
         (food) =>
-          food.title.toLowerCase().includes(query) ||
-          food.restaurant.toLowerCase().includes(query)
+          matchesKanaSearch(food.title, query) ||
+          matchesKanaSearch(food.restaurant, query)
       )
     }
 
@@ -219,10 +220,14 @@ export default function FavoritesPage() {
 
       <main className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-accent fill-current" />
-            <h1 className="text-xl font-bold text-foreground">お気に入り</h1>
-            <span className="text-sm text-muted-foreground">({favoriteCount}件)</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-accent/10 rounded-full">
+              <Heart className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">お気に入り</h1>
+              <span className="text-sm text-muted-foreground">{favoriteCount}件登録済み</span>
+            </div>
           </div>
 
           {favoriteCount > 0 && (

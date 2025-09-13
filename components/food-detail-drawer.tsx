@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { X, Star, ExternalLink, MapPin, Calendar, Clock } from "lucide-react"
+import { X, Heart, ExternalLink, MapPin, Calendar, Timer, Building2 } from "lucide-react"
 import { useFavoritesContext } from "@/components/favorites-context"
 import { useToast } from "@/components/toast-provider"
 import { FoodItem } from "@/lib/database.types"
@@ -136,7 +136,7 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
                 }`}
                 onClick={handleFavoriteToggle}
               >
-                <Star className={`w-5 h-5 ${isFavorite(item.id) ? "fill-current" : ""}`} />
+                <Heart className={`w-5 h-5 ${isFavorite(item.id) ? "fill-current text-accent" : ""}`} />
               </Button>
             </div>
 
@@ -151,13 +151,15 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
               {/* レストラン情報 */}
               <div className="bg-card p-4 rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-4 h-4 text-primary" />
+                  <div className="flex items-center justify-center w-5 h-5 bg-primary/10 rounded">
+                    <Building2 className="w-3 h-3 text-primary" />
+                  </div>
                   <span className="font-medium text-card-foreground">提供店舗</span>
                 </div>
                 <p className="text-card-foreground">{item.restaurant}</p>
                 {item.park && (
                   <p className="text-sm font-medium text-primary mt-2">
-                    {item.park === 'tdl' ? '🏰 東京ディズニーランド' : '🌊 東京ディズニーシー'}
+                    {item.park === 'tdl' ? '東京ディズニーランド' : '東京ディズニーシー'}
                   </p>
                 )}
               </div>
@@ -176,7 +178,9 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
               {/* 営業時間（サンプル） */}
               <div className="bg-muted/50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex items-center justify-center w-5 h-5 bg-accent/20 rounded">
+                    <Timer className="w-3 h-3 text-accent" />
+                  </div>
                   <span className="font-medium text-foreground">営業時間</span>
                 </div>
                 <p className="text-foreground text-sm">9:00 - 21:00（ラストオーダー 20:30）</p>
@@ -187,8 +191,10 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
             {/* アクションボタン */}
             <div className="space-y-3 pb-20">
               <Button className="w-full flex items-center gap-2 h-12" onClick={() => window.open(`https://www.tokyodisneyresort.jp/food/${item.id}/`, "_blank")}>
-                <ExternalLink className="w-4 h-4" />
-                公式サイトで詳細を見る
+                <div className="flex items-center justify-center w-4 h-4 bg-primary/10 rounded">
+                  <ExternalLink className="w-3 h-3 text-primary" />
+                </div>
+                公式サイト
               </Button>
 
               <Button
@@ -196,7 +202,7 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
                 className="w-full flex items-center gap-2 h-12 bg-transparent"
                 onClick={handleFavoriteToggle}
               >
-                <Star className={`w-4 h-4 ${isFavorite(item.id) ? "fill-current text-accent" : ""}`} />
+                <Heart className={`w-4 h-4 ${isFavorite(item.id) ? "fill-current text-accent" : ""}`} />
                 {isFavorite(item.id) ? "お気に入りから削除" : "お気に入りに追加"}
               </Button>
             </div>

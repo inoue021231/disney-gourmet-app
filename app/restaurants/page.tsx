@@ -6,10 +6,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { MapPin, Search, ExternalLink, Clock } from "lucide-react"
+import { MapPin, Search, ExternalLink, Clock, ChevronLeft, ChevronRight, Building2, Timer } from "lucide-react"
+import { ViewToggleButton } from "@/components/view-toggle-button"
 import { useRestaurants } from "@/hooks/use-restaurants"
 import { useAreas } from "@/hooks/use-areas"
+import { useMobileDetection } from "@/hooks/use-mobile-detection"
 import { parseBusinessHours, isCurrentlyOpen, isOpenAtTime, timeStringToMinutes } from "@/lib/api/foods"
+import { matchesKanaSearch } from "@/lib/kana-conversion"
 
 const FALLBACK_RESTAURANTS = [
   {
@@ -17,42 +20,42 @@ const FALLBACK_RESTAURANTS = [
     name: "サンプルレストラン A",
     park: "TDL",
     area: "サンプルエリア A",
-    business_hours: "9:00 - 21:00",
     type: "レストラン",
-    description: "洋食を中心としたメニューが楽しめるレストラン",
-    specialties: ["ハンバーガーセット", "パスタ", "サラダ"],
+    description: "サンプルレストランの説明文です。",
+    business_hours: "10:00 - 19:30",
+    specialties: ["ハンバーガー", "フライドポテト", "ドリンク"],
     image: "/no-image-light.png",
   },
   {
     id: "2",
     name: "サンプルカフェ B",
-    park: "TDL",
-    area: "サンプルエリア A",
-    business_hours: "8:00 - 22:00",
+    park: "TDS",
+    area: "サンプルエリア B",
     type: "カフェ",
-    description: "デザートとドリンクが充実したカフェ",
-    specialties: ["季節限定デザート", "コーヒー", "ケーキ"],
+    description: "サンプルカフェの説明文です。",
+    business_hours: "09:00 - 20:00",
+    specialties: ["コーヒー", "ケーキ", "サンドイッチ"],
     image: "/no-image-light.png",
   },
   {
     id: "3",
-    name: "サンプルレストラン C",
-    park: "TDS",
-    area: "サンプルエリア B",
-    business_hours: "10:00 - 20:00",
-    type: "レストラン",
-    description: "ショーが楽しめるレストラン",
-    specialties: ["ハンバーガー", "ホットドッグ", "スペシャルドリンク"],
+    name: "サンプルワゴン C",
+    park: "TDL",
+    area: "サンプルエリア C",
+    type: "ワゴン",
+    description: "サンプルワゴンの説明文です。",
+    business_hours: "ー",
+    specialties: ["スナック", "ドリンク"],
     image: "/no-image-light.png",
   },
   {
     id: "4",
-    name: "サンプルカフェ D",
-    park: "TDL",
-    area: "サンプルエリア A",
-    business_hours: "11:30 - 21:00",
+    name: "サンプルレストラン D",
+    park: "TDS",
+    area: "サンプルエリア D",
     type: "レストラン",
-    description: "落ち着いた雰囲気でお食事が楽しめるレストラン",
+    description: "サンプルレストランの説明文です。",
+    business_hours: "11:00 - 21:00",
     specialties: ["パスタ", "低アレルゲンメニュー", "コース料理"],
     image: "/no-image-light.png",
   },
@@ -64,13 +67,16 @@ export default function RestaurantsPage() {
   const [selectedArea, setSelectedArea] = useState("all")
   const [operatingStatus, setOperatingStatus] = useState("all")
   const [targetTime, setTargetTime] = useState("17:00")
+  const [currentPage, setCurrentPage] = useState(1)
   const { restaurants: apiRestaurants, isLoading } = useRestaurants()
   const { areas, getAreasByPark } = useAreas()
+  const isMobile = useMobileDetection()
 
   // パーク変更時にエリアをリセット
   const handleParkChange = (park: string) => {
     setSelectedPark(park)
     setSelectedArea("all")
+    setCurrentPage(1) // ページをリセット
   }
 
   // 営業時間フィルター変更時の処理
@@ -79,6 +85,7 @@ export default function RestaurantsPage() {
     if (status !== "open-at-time") {
       setTargetTime("17:00") // デフォルト時刻に戻す
     }
+    setCurrentPage(1) // ページをリセット
   }
 
   // パークに応じたエリア選択肢を取得
@@ -106,8 +113,8 @@ export default function RestaurantsPage() {
     }
 
     const matchesSearch =
-      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      restaurant.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      matchesKanaSearch(restaurant.name, searchQuery) ||
+      (restaurant.description && matchesKanaSearch(restaurant.description, searchQuery))
     
     // パークフィルター（大文字小文字を統一して比較）
     const matchesPark = selectedPark === "all" || 
@@ -118,13 +125,24 @@ export default function RestaurantsPage() {
     return matchesSearch && matchesPark && matchesArea
   })
 
+  // ページネーション処理
+  const itemsPerPage = 10
+  const totalPages = Math.ceil(filteredRestaurants.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedRestaurants = filteredRestaurants.slice(startIndex, startIndex + itemsPerPage)
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">レストラン一覧</h1>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+                <Building2 className="w-5 h-5 text-primary" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground">レストラン一覧</h1>
+            </div>
+            <ViewToggleButton />
           </div>
 
           <div className="space-y-3">
@@ -132,10 +150,10 @@ export default function RestaurantsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="text"
-                placeholder="キーワードを入力してください"
+                placeholder="キーワードを入力..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-input border-border"
+                className="pl-10 bg-input border-border w-full"
               />
             </div>
 
@@ -148,8 +166,8 @@ export default function RestaurantsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全パーク</SelectItem>
-                    <SelectItem value="tdl">🏰 TDL</SelectItem>
-                    <SelectItem value="tds">🌊 TDS</SelectItem>
+                    <SelectItem value="tdl">TDL</SelectItem>
+                    <SelectItem value="tds">TDS</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -180,7 +198,7 @@ export default function RestaurantsPage() {
                   </Select>
                 </div>
               </div>
-              
+
               {/* 第2行: 時刻入力（条件付き表示） */}
               {operatingStatus === "open-at-time" && (
                 <div className="flex items-center gap-2 max-w-xs">
@@ -195,12 +213,53 @@ export default function RestaurantsPage() {
                 </div>
               )}
             </div>
+
+            {/* フィルター条件の表示 */}
+            {(selectedPark !== "all" || selectedArea !== "all" || operatingStatus !== "all" || searchQuery) && (
+              <div className="flex flex-wrap gap-2">
+                {selectedPark !== "all" && (
+                  <Badge variant="secondary" className="text-xs">
+                    パーク: {selectedPark === "tdl" ? "TDL" : "TDS"}
+                  </Badge>
+                )}
+                {selectedArea !== "all" && (
+                  <Badge variant="secondary" className="text-xs">
+                    エリア: {selectedArea}
+                  </Badge>
+                )}
+                {operatingStatus !== "all" && (
+                  <Badge variant="secondary" className="text-xs">
+                    営業状況: {operatingStatus === "open-now" ? "現在営業中" : "指定時刻"}
+                  </Badge>
+                )}
+                {searchQuery && (
+                  <Badge variant="secondary" className="text-xs">
+                    検索: {searchQuery}
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedPark("all")
+                    setSelectedArea("all")
+                    setOperatingStatus("all")
+                    setTargetTime("17:00")
+                    setCurrentPage(1)
+                  }}
+                  className="text-xs"
+                >
+                  条件をクリア
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {filteredRestaurants.length === 0 ? (
+        {paginatedRestaurants.length === 0 ? (
           <div className="text-center py-12">
             <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">条件に合うレストランは見つかりません</p>
@@ -212,99 +271,172 @@ export default function RestaurantsPage() {
                 setSelectedArea("all")
                 setOperatingStatus("all")
                 setTargetTime("17:00")
+                setCurrentPage(1)
               }}
             >
               条件をクリア
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredRestaurants.map((restaurant) => (
-              <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                <div className="aspect-[3/2] relative overflow-hidden bg-muted">
-                  {restaurant.image && restaurant.image !== '/no-image-light.png' ? (
-                    <img
-                      src={restaurant.image}
-                      alt={restaurant.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                      }}
-                    />
-                  ) : null}
-                  <div className={`w-full h-full flex items-center justify-center ${restaurant.image && restaurant.image !== '/no-image-light.png' ? 'hidden' : ''}`}>
-                    <img 
-                      src="/no-image-light.png" 
-                      alt="画像なし" 
-                      className="w-full h-full object-contain opacity-60 dark:hidden" 
-                    />
-                    <img 
-                      src="/no-image-dark.png" 
-                      alt="画像なし" 
-                      className="w-full h-full object-contain opacity-60 hidden dark:block" 
-                    />
+          <>
+            <div className={`grid gap-6 ${
+              isMobile 
+                ? 'grid-cols-2'
+                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+            }`}>
+              {paginatedRestaurants.map((restaurant) => (
+                <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
+                  <div className="aspect-[3/2] relative overflow-hidden bg-muted flex-shrink-0">
+                    {restaurant.image && restaurant.image !== '/no-image-light.png' ? (
+                      <img
+                        src={restaurant.image}
+                        alt={restaurant.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center ${restaurant.image && restaurant.image !== '/no-image-light.png' ? 'hidden' : ''}`}>
+                      <img 
+                        src="/no-image-light.png" 
+                        alt="画像なし" 
+                        className="w-full h-full object-contain opacity-60 dark:hidden" 
+                      />
+                      <img 
+                        src="/no-image-dark.png" 
+                        alt="画像なし" 
+                        className="w-full h-full object-contain opacity-60 hidden dark:block" 
+                      />
+                    </div>
                   </div>
+
+                  <CardHeader className="pb-3 flex-shrink-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-sm sm:text-base text-card-foreground leading-tight flex-1 min-w-0">
+                        <span className="line-clamp-2 break-words">{restaurant.name}</span>
+                      </CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+                      <div className="flex items-center justify-center w-4 h-4 bg-muted/50 rounded">
+                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                      </div>
+                      <span className="truncate flex-1">{restaurant.area}</span>
+                    </div>
+                    <div className="mt-1">
+                      <span className="text-xs font-medium text-primary">
+                        {restaurant.park === 'TDL' ? 'TDL' : 'TDS'}
+                      </span>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-2 flex-1 flex flex-col">
+                    {restaurant.business_hours && (
+                      <div className="bg-muted/50 p-2 rounded-lg flex-shrink-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center justify-center w-4 h-4 bg-accent/20 rounded">
+                            <Timer className="w-2.5 h-2.5 text-accent flex-shrink-0" />
+                          </div>
+                          <span className="text-xs font-medium text-card-foreground">営業時間</span>
+                        </div>
+                        <p className="text-xs text-card-foreground truncate">{restaurant.business_hours}</p>
+                      </div>
+                    )}
+
+                    {restaurant.specialties && restaurant.specialties.length > 0 && (
+                      <div className="flex-shrink-0">
+                        <p className="text-xs font-medium text-card-foreground mb-1">人気メニュー</p>
+                        <div className="flex flex-wrap gap-1">
+                          {restaurant.specialties.slice(0, 2).map((specialty) => (
+                            <Badge key={specialty} variant="outline" className="text-xs">
+                              <span className="truncate max-w-[70px]">{specialty}</span>
+                            </Badge>
+                          ))}
+                          {restaurant.specialties.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{restaurant.specialties.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-auto pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center gap-2 bg-transparent"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          window.open(`https://www.tokyodisneyresort.jp/${restaurant.park === 'tdl' ? 'tdl' : 'tds'}/restaurant/detail/${restaurant.id}/`, "_blank")
+                        }}
+                      >
+                        <div className="flex items-center justify-center w-4 h-4 bg-primary/10 rounded">
+                          <ExternalLink className="w-2.5 h-2.5 text-primary" />
+                        </div>
+                        <span className="text-xs">公式サイト</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* ページネーション */}
+            {!isLoading && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="min-w-[44px] h-[44px]"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="sr-only">前のページ</span>
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let page: number
+                    if (totalPages <= 5) {
+                      page = i + 1
+                    } else if (currentPage <= 3) {
+                      page = i + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i
+                    } else {
+                      page = currentPage - 2 + i
+                    }
+
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="min-w-[44px] h-[44px]"
+                      >
+                        {page}
+                      </Button>
+                    )
+                  })}
                 </div>
 
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg text-card-foreground">{restaurant.name}</CardTitle>
-                    <Badge variant="outline" className="ml-2">
-                      {restaurant.park}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{restaurant.area}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {restaurant.type}
-                    </Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{restaurant.description}</p>
-
-                  {restaurant.business_hours && (
-                    <div className="bg-muted/50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Clock className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-card-foreground">営業時間</span>
-                      </div>
-                      <p className="text-sm text-card-foreground">{restaurant.business_hours}</p>
-                    </div>
-                  )}
-
-                  {restaurant.specialties && restaurant.specialties.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-card-foreground mb-2">人気メニュー</p>
-                      <div className="flex flex-wrap gap-1">
-                        {restaurant.specialties.map((specialty) => (
-                          <Badge key={specialty} variant="outline" className="text-xs">
-                            {specialty}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full flex items-center gap-2 bg-transparent"
-                    onClick={() => {
-                      const parkPath = restaurant.park.toLowerCase() === 'tdl' ? 'tdl' : 'tds'
-                      window.open(`https://www.tokyodisneyresort.jp/${parkPath}/restaurant/detail/${restaurant.id}/`, "_blank")
-                    }}
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    公式サイトで詳細を見る
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="min-w-[44px] h-[44px]"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <span className="sr-only">次のページ</span>
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

@@ -7,6 +7,7 @@ import { BottomNavigation } from "@/components/bottom-navigation"
 import { ToastProvider } from "@/components/toast-provider"
 import { FavoritesProvider } from "@/components/favorites-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ViewModeProvider } from "@/components/view-mode-provider"
 import { SplashScreen } from "@/components/splash-screen"
 import { Suspense } from "react"
 import "./globals.css"
@@ -65,15 +66,17 @@ export default function RootLayout({
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <FavoritesProvider>
-            <ToastProvider>
-              <SplashScreen />
-              <Suspense fallback={null}>
-                <div className="pb-20 min-h-screen">{children}</div>
-                <BottomNavigation />
-              </Suspense>
-            </ToastProvider>
-          </FavoritesProvider>
+          <ViewModeProvider>
+            <FavoritesProvider>
+              <ToastProvider>
+                <SplashScreen />
+                <Suspense fallback={null}>
+                  <div className="pb-20 min-h-screen">{children}</div>
+                  <BottomNavigation />
+                </Suspense>
+              </ToastProvider>
+            </FavoritesProvider>
+          </ViewModeProvider>
         </ThemeProvider>
         <Analytics />
         <script

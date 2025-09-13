@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
-import { ChevronDown, ChevronUp, X, Filter, Clock } from "lucide-react"
+import { ChevronDown, ChevronUp, X, Filter, Timer } from "lucide-react"
 import { useAreas } from "@/hooks/use-areas"
 
 interface FilterState {
@@ -111,7 +111,7 @@ export function FilterBar({ filters, onFiltersChange, isExpanded, onToggleExpand
               )}
             </Button>
             {typeof resultCount === "number" && (
-              <span className="text-sm text-muted-foreground">{resultCount}件のメニュー</span>
+              <span className="text-sm text-muted-foreground">{resultCount}件</span>
             )}
           </div>
 
@@ -175,7 +175,9 @@ export function FilterBar({ filters, onFiltersChange, isExpanded, onToggleExpand
                 
                 {filters.operatingStatus === "open-at-time" && (
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <div className="flex items-center justify-center w-4 h-4 bg-accent/20 rounded">
+                      <Timer className="w-2.5 h-2.5 text-accent" />
+                    </div>
                     <Input
                       type="time"
                       value={filters.targetTime || "17:00"}

@@ -4,6 +4,7 @@ import type React from "react"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { ViewToggleButton } from "@/components/view-toggle-button"
 import { Search, Heart, X } from "lucide-react"
 import { useState, useRef } from "react"
 
@@ -43,18 +44,18 @@ export function SearchHeader({ searchQuery, onSearchChange, onFavoritesClick, sh
         <div className="flex items-center gap-3">
           <h1 className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">グルメ検索</h1>
 
-          <div className="relative flex-1 max-w-md sm:max-w-lg">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               ref={inputRef}
               type="text"
-              placeholder="キーワードを入力してください"
+              placeholder="キーワードを入力..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
               onCompositionStart={handleCompositionStart}
               onCompositionEnd={handleCompositionEnd}
-              className="pl-10 pr-10 bg-input border-border text-sm sm:text-base"
+              className="pl-10 pr-10 bg-input border-border text-sm sm:text-base w-full"
             />
             {searchQuery && (
               <Button
@@ -68,6 +69,8 @@ export function SearchHeader({ searchQuery, onSearchChange, onFavoritesClick, sh
             )}
           </div>
 
+          <ViewToggleButton />
+          
           <Button
             variant={showFavoritesOnly ? "default" : "ghost"}
             size="sm"

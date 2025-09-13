@@ -1,7 +1,7 @@
 {
-  "name": "テーマパークグルメ検索",
-  "short_name": "グルメ検索",
-  "description": "テーマパークのグルメ情報を検索・お気に入り登録できるアプリ",
+  "name": "ディズニーグルメ検索",
+  "short_name": "Dグルメ検索",
+  "description": "ディズニーのグルメ情報を検索・お気に入り登録できるアプリ",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAFAFD",

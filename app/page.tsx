@@ -13,6 +13,7 @@ import { useFavoritesContext } from "@/components/favorites-context"
 import { useFoods } from "@/hooks/use-foods"
 import { FoodItem } from "@/lib/database.types"
 import { parseBusinessHours, isCurrentlyOpen, isOpenAtTime, timeStringToMinutes } from "@/lib/api/foods"
+import { matchesKanaSearch } from "@/lib/kana-conversion"
 
 // フォールバック用サンプルデータ
 const FALLBACK_FOODS = [
@@ -109,7 +110,7 @@ export default function HomePage() {
     operatingStatus: "all",
   })
 
-  const itemsPerPage = 6
+  const itemsPerPage = 10
 
   const foodsWithFavorites = useMemo(() => {
     if (!isLoaded) return apiFoods
@@ -127,13 +128,13 @@ export default function HomePage() {
       result = getFavoriteItems(result)
     }
 
-    // 検索クエリフィルター
+    // 検索クエリフィルター（ひらがな・カタカナ対応）
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim()
+      const query = searchQuery.trim()
       result = result.filter(
         (food) =>
-          food.title.toLowerCase().includes(query) ||
-          food.restaurant.toLowerCase().includes(query)
+          matchesKanaSearch(food.title, query) ||
+          matchesKanaSearch(food.restaurant, query)
       )
     }
 
@@ -306,17 +307,12 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {paginatedFoods.map((food) => (
-                  <FoodList
-                    key={food.id}
-                    foods={[food]}
-                    onFavoriteToggle={handleFavoriteToggle}
-                    onCardClick={handleCardClick}
-                    isLoading={isLoading}
-                  />
-                ))}
-              </div>
+              <FoodList
+                foods={paginatedFoods}
+                onFavoriteToggle={handleFavoriteToggle}
+                onCardClick={handleCardClick}
+                isLoading={isLoading}
+              />
 
               {!isLoading && totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-8">
