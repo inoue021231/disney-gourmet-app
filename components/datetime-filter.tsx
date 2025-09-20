@@ -4,9 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Calendar, X } from "lucide-react"
+import { X } from "lucide-react"
 import { format } from "date-fns"
-import { ja } from "date-fns/locale"
 
 interface DateFilterProps {
   onDateChange: (date: Date | null) => void
@@ -46,10 +45,7 @@ export function DateFilter({ onDateChange }: DateFilterProps) {
   return (
     <div className="bg-muted/50 p-4 rounded-lg space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-primary" />
-          <Label className="font-medium">販売日フィルター</Label>
-        </div>
+        <Label className="font-medium">販売日フィルター</Label>
         <Button
           variant="ghost"
           size="sm"
@@ -61,36 +57,15 @@ export function DateFilter({ onDateChange }: DateFilterProps) {
         </Button>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="date-input" className="text-sm font-medium">
-          日付
-        </Label>
-        <div className="relative">
-          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            id="date-input"
-            type="date"
-            min={today}
-            value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
-            onChange={(e) => handleDateChange(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <p className="text-xs text-muted-foreground">
-          未選択の場合は現在の日付を参照
-        </p>
-      </div>
-
-      {/* 現在の選択状態を表示 */}
-      <div className="pt-2 border-t border-border">
-        <div className="text-sm text-muted-foreground">
-          <span className="font-medium">選択中:</span>{' '}
-          {selectedDate ? (
-            format(selectedDate, 'yyyy年M月d日(E)', { locale: ja })
-          ) : (
-            '現在の日付'
-          )}
-        </div>
+      <div>
+        <Input
+          id="date-input"
+          type="date"
+          min={today}
+          value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+          onChange={(e) => handleDateChange(e.target.value)}
+          className="w-full"
+        />
       </div>
     </div>
   )

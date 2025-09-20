@@ -17,6 +17,7 @@ import { FoodItem } from "@/lib/database.types"
 import { parseBusinessHours, isCurrentlyOpen, isOpenAtTime, timeStringToMinutes } from "@/lib/api/foods"
 import { matchesKanaSearch } from "@/lib/kana-conversion"
 import { filterMenusByAvailability } from "@/lib/menu-availability"
+import { filterOutNGMenus } from "@/lib/ng-menu-filter"
 import { format } from "date-fns"
 
 // フォールバック用サンプルデータ
@@ -171,7 +172,10 @@ export default function HomePage() {
     let result = foodsWithFavorites
     const originalCount = result.length
 
-    // 日付フィルター（最優先）
+    // NGメニューフィルター（最優先）
+    result = filterOutNGMenus(result)
+
+    // 日付フィルター
     // 日付が設定されている場合のみフィルタリングを実行
     if (selectedDate !== null) {
       const targetDate = selectedDate
@@ -313,6 +317,10 @@ export default function HomePage() {
         showFavoritesOnly={showFavoritesOnly}
       />
 
+      <div className="container mx-auto px-4 py-4">
+        <DateFilter onDateChange={handleDateChange} />
+      </div>
+
       <FilterBar
         filters={filters}
         onFiltersChange={setFilters}
@@ -320,10 +328,6 @@ export default function HomePage() {
         onToggleExpanded={() => setIsFilterExpanded(!isFilterExpanded)}
         resultCount={filteredFoods.length}
       />
-
-      <div className="container mx-auto px-4 py-4">
-        <DateFilter onDateChange={handleDateChange} />
-      </div>
 
       <main>
         <ResponsiveContainer className="py-6">
