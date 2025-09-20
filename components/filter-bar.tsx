@@ -5,16 +5,18 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
-import { ChevronDown, ChevronUp, X, Filter, Timer } from "lucide-react"
+import { ChevronDown, ChevronUp, X, Filter } from "lucide-react"
 import { useAreas } from "@/hooks/use-areas"
+import { getAvailableServiceTypes, getReservationSystemOptions } from "@/lib/restaurant-filters"
+import { useRestaurants } from "@/hooks/use-restaurants"
 
 interface FilterState {
   park: string
   area: string
   priceRange: [number, number]
   sortBy: string
-  operatingStatus: string // 'all' | 'open-now' | 'open-at-time'
-  targetTime?: string // 'HH:MM' format
+  serviceType: string
+  reservationSystem: string
 }
 
 interface FilterBarProps {
@@ -48,21 +50,21 @@ const SORT_OPTIONS = [
   { value: "newest", label: "新着" },
 ]
 
-const OPERATING_STATUS_OPTIONS = [
-  { value: "all", label: "すべて" },
-  { value: "open-now", label: "現在営業中" },
-  { value: "open-at-time", label: "指定時刻に営業中" },
-]
 
 export function FilterBar({ filters, onFiltersChange, isExpanded, onToggleExpanded, resultCount }: FilterBarProps) {
   const { areas, getAreasByPark } = useAreas()
+  const { restaurants } = useRestaurants()
+  
+  const serviceTypeOptions = getAvailableServiceTypes(restaurants)
+  const reservationSystemOptions = getReservationSystemOptions()
   
   const hasActiveFilters =
     filters.park !== "all" ||
     filters.area !== "all" ||
     filters.priceRange[0] > 0 ||
     filters.priceRange[1] < 3000 ||
-    filters.operatingStatus !== "all"
+    filters.serviceType !== "all" ||
+    filters.reservationSystem !== "all"
 
   // パークに応じてエリアフィルターをリセット
   const handleParkChange = (park: string) => {
@@ -71,15 +73,6 @@ export function FilterBar({ filters, onFiltersChange, isExpanded, onToggleExpand
       park, 
       area: "all" // パーク変更時はエリアをリセット
     })
-  }
-
-  // 営業時間フィルター変更時の処理
-  const handleOperatingStatusChange = (status: string) => {
-    const newFilters = { ...filters, operatingStatus: status }
-    if (status !== "open-at-time") {
-      delete newFilters.targetTime // 指定時刻以外の場合は時刻をクリア
-    }
-    onFiltersChange(newFilters)
   }
 
   // パークに応じたエリア選択肢を取得
@@ -91,7 +84,8 @@ export function FilterBar({ filters, onFiltersChange, isExpanded, onToggleExpand
       area: "all",
       priceRange: [0, 3000],
       sortBy: "recommended",
-      operatingStatus: "all",
+      serviceType: "all",
+      reservationSystem: "all"
     })
   }
 
@@ -159,35 +153,33 @@ export function FilterBar({ filters, onFiltersChange, isExpanded, onToggleExpand
                 </SelectContent>
               </Select>
 
-              <div className="space-y-2">
-                <Select value={filters.operatingStatus} onValueChange={handleOperatingStatusChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="営業状況" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {OPERATING_STATUS_OPTIONS.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {filters.operatingStatus === "open-at-time" && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-4 h-4 bg-accent/20 rounded">
-                      <Timer className="w-2.5 h-2.5 text-accent" />
-                    </div>
-                    <Input
-                      type="time"
-                      value={filters.targetTime || "17:00"}
-                      onChange={(e) => onFiltersChange({ ...filters, targetTime: e.target.value })}
-                      className="flex-1"
-                      placeholder="時刻を選択"
-                    />
-                  </div>
-                )}
-              </div>
+              <Select value={filters.serviceType} onValueChange={(value) => onFiltersChange({ ...filters, serviceType: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="サービス形態" />
+                </SelectTrigger>
+                <SelectContent>
+                  {serviceTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <Select value={filters.reservationSystem} onValueChange={(value) => onFiltersChange({ ...filters, reservationSystem: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="予約システム" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reservationSystemOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

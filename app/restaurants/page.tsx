@@ -13,6 +13,7 @@ import { useAreas } from "@/hooks/use-areas"
 import { useMobileDetection } from "@/hooks/use-mobile-detection"
 import { parseBusinessHours, isCurrentlyOpen, isOpenAtTime, timeStringToMinutes } from "@/lib/api/foods"
 import { matchesKanaSearch } from "@/lib/kana-conversion"
+import { getAvailableServiceTypes, getReservationSystemOptions } from "@/lib/restaurant-filters"
 
 const FALLBACK_RESTAURANTS = [
   {
@@ -65,8 +66,8 @@ export default function RestaurantsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedPark, setSelectedPark] = useState("all")
   const [selectedArea, setSelectedArea] = useState("all")
-  const [operatingStatus, setOperatingStatus] = useState("all")
-  const [targetTime, setTargetTime] = useState("17:00")
+  const [selectedServiceType, setSelectedServiceType] = useState("all")
+  const [selectedReservationSystem, setSelectedReservationSystem] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const { restaurants: apiRestaurants, isLoading } = useRestaurants()
   const { areas, getAreasByPark } = useAreas()
@@ -79,17 +80,13 @@ export default function RestaurantsPage() {
     setCurrentPage(1) // ページをリセット
   }, [])
 
-  // 営業時間フィルター変更時の処理
-  const handleOperatingStatusChange = useCallback((status: string) => {
-    setOperatingStatus(status)
-    if (status !== "open-at-time") {
-      setTargetTime("17:00") // デフォルト時刻に戻す
-    }
-    setCurrentPage(1) // ページをリセット
-  }, [])
 
   // パークに応じたエリア選択肢を取得
   const availableAreas = getAreasByPark(selectedPark)
+
+  // 新しいフィルター選択肢を取得
+  const serviceTypeOptions = getAvailableServiceTypes(apiRestaurants)
+  const reservationSystemOptions = getReservationSystemOptions()
 
   const restaurants = apiRestaurants.length > 0 ? apiRestaurants : FALLBACK_RESTAURANTS
 
@@ -99,18 +96,6 @@ export default function RestaurantsPage() {
       const businessHoursParsed = parseBusinessHours(restaurant.business_hours)
       if (!businessHoursParsed.isOpen) {
         return false
-      }
-
-      // 営業時間フィルター
-      if (operatingStatus === "open-now") {
-        if (!isCurrentlyOpen(restaurant.business_hours)) {
-          return false
-        }
-      } else if (operatingStatus === "open-at-time") {
-        const targetMinutes = timeStringToMinutes(targetTime)
-        if (!isOpenAtTime(restaurant.business_hours, targetMinutes)) {
-          return false
-        }
       }
 
       const matchesSearch =
@@ -123,9 +108,28 @@ export default function RestaurantsPage() {
       
       const matchesArea = selectedArea === "all" || restaurant.area === selectedArea
 
-      return matchesSearch && matchesPark && matchesArea
+      // サービス形態フィルター
+      const matchesServiceType = selectedServiceType === "all" || 
+        restaurant.service_type === selectedServiceType
+
+      // 予約システムフィルター
+      let matchesReservationSystem = true
+      if (selectedReservationSystem !== "all") {
+        switch (selectedReservationSystem) {
+          case 'mobile_order':
+            matchesReservationSystem = restaurant.mobile_order_flag === true
+            break
+          case 'priority_seating':
+            matchesReservationSystem = restaurant.priority_seating_flag === true
+            break
+          default:
+            matchesReservationSystem = true
+        }
+      }
+
+      return matchesSearch && matchesPark && matchesArea && matchesServiceType && matchesReservationSystem
     })
-  }, [restaurants, operatingStatus, targetTime, selectedPark, selectedArea, searchQuery])
+  }, [restaurants, selectedPark, selectedArea, selectedServiceType, selectedReservationSystem, searchQuery])
 
   // ページネーション処理
   const paginationData = useMemo(() => {
@@ -191,37 +195,39 @@ export default function RestaurantsPage() {
                   </SelectContent>
                 </Select>
 
-                <div className="col-span-2 sm:col-span-1">
-                  <Select value={operatingStatus} onValueChange={handleOperatingStatusChange}>
-                    <SelectTrigger className="text-xs sm:text-sm">
-                      <SelectValue placeholder="営業状況" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">すべて</SelectItem>
-                      <SelectItem value="open-now">現在営業中</SelectItem>
-                      <SelectItem value="open-at-time">指定時刻</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={selectedServiceType} onValueChange={setSelectedServiceType}>
+                  <SelectTrigger className="text-xs sm:text-sm">
+                    <SelectValue placeholder="サービス形態" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {serviceTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* 第2行: 時刻入力（条件付き表示） */}
-              {operatingStatus === "open-at-time" && (
-                <div className="flex items-center gap-2 max-w-xs">
-                  <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <Input
-                    type="time"
-                    value={targetTime}
-                    onChange={(e) => setTargetTime(e.target.value)}
-                    className="flex-1 text-sm"
-                    placeholder="時刻を選択"
-                  />
-                </div>
-              )}
+              {/* 第2行: 予約システム */}
+              <div className="grid grid-cols-1 gap-2">
+                <Select value={selectedReservationSystem} onValueChange={setSelectedReservationSystem}>
+                  <SelectTrigger className="text-xs sm:text-sm">
+                    <SelectValue placeholder="予約システム" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reservationSystemOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* フィルター条件の表示 */}
-            {(selectedPark !== "all" || selectedArea !== "all" || operatingStatus !== "all" || searchQuery) && (
+            {(selectedPark !== "all" || selectedArea !== "all" || selectedServiceType !== "all" || selectedReservationSystem !== "all" || searchQuery) && (
               <div className="flex flex-wrap gap-2">
                 {selectedPark !== "all" && (
                   <Badge variant="secondary" className="text-xs">
@@ -233,9 +239,14 @@ export default function RestaurantsPage() {
                     エリア: {selectedArea}
                   </Badge>
                 )}
-                {operatingStatus !== "all" && (
+                {selectedServiceType !== "all" && (
                   <Badge variant="secondary" className="text-xs">
-                    営業状況: {operatingStatus === "open-now" ? "現在営業中" : "指定時刻"}
+                    サービス形態: {selectedServiceType}
+                  </Badge>
+                )}
+                {selectedReservationSystem !== "all" && (
+                  <Badge variant="secondary" className="text-xs">
+                    予約システム: {reservationSystemOptions.find(opt => opt.value === selectedReservationSystem)?.label}
                   </Badge>
                 )}
                 {searchQuery && (

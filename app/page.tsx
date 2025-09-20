@@ -18,6 +18,7 @@ import { parseBusinessHours, isCurrentlyOpen, isOpenAtTime, timeStringToMinutes 
 import { matchesKanaSearch } from "@/lib/kana-conversion"
 import { filterMenusByAvailability } from "@/lib/menu-availability"
 import { filterOutNGMenus } from "@/lib/ng-menu-filter"
+import { filterByServiceType, filterByReservationSystem } from "@/lib/restaurant-filters"
 import { format } from "date-fns"
 
 // フォールバック用サンプルデータ
@@ -125,8 +126,8 @@ interface FilterState {
   area: string
   priceRange: [number, number]
   sortBy: string
-  operatingStatus: string
-  targetTime?: string
+  serviceType: string
+  reservationSystem: string
 }
 
 export default function HomePage() {
@@ -146,7 +147,8 @@ export default function HomePage() {
     area: "all",
     priceRange: [0, 3000],
     sortBy: "recommended",
-    operatingStatus: "all",
+    serviceType: "all",
+    reservationSystem: "all"
   })
 
   const itemsPerPage = 10
@@ -216,24 +218,11 @@ export default function HomePage() {
       })
     }
 
-    // 営業時間フィルター（実際のレストラン営業時間データを使用）
-    if (filters.operatingStatus !== "all") {
-      result = result.filter((food) => {
-        // 実際の実装では、レストランIDを使ってデータベースから営業時間を取得する
-        // 現在はフォールバック実装
-        if (filters.operatingStatus === "open-now") {
-          // 現在営業中のレストランのみ表示
-          // TODO: レストランテーブルのbusiness_hoursを使用
-          return true // フォールバック
-        } else if (filters.operatingStatus === "open-at-time" && filters.targetTime) {
-          // 指定時刻に営業中のレストランのみ表示
-          // TODO: レストランテーブルのbusiness_hoursを使用
-          return true // フォールバック
-        }
-        return true
-      })
-    }
+    // サービス形態フィルター
+    result = filterByServiceType(result, apiRestaurants, filters.serviceType)
 
+    // 予約システムフィルター
+    result = filterByReservationSystem(result, apiRestaurants, filters.reservationSystem)
 
     // 価格フィルター
     result = result.filter((food) => {

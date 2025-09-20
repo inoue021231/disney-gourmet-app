@@ -16,6 +16,7 @@ import { FoodItem } from "@/lib/database.types"
 import { matchesKanaSearch } from "@/lib/kana-conversion"
 import { filterMenusByAvailability } from "@/lib/menu-availability"
 import { filterOutNGMenus } from "@/lib/ng-menu-filter"
+import { filterByServiceType, filterByReservationSystem } from "@/lib/restaurant-filters"
 import { format } from "date-fns"
 
 // フォールバック用データ（実際のアプリではAPIから取得）
@@ -85,8 +86,8 @@ interface FilterState {
   area: string
   priceRange: [number, number]
   sortBy: string
-  operatingStatus: string
-  targetTime?: string
+  serviceType: string
+  reservationSystem: string
 }
 
 export default function FavoritesPage() {
@@ -103,7 +104,8 @@ export default function FavoritesPage() {
     area: "all",
     priceRange: [0, 3000],
     sortBy: "recommended",
-    operatingStatus: "all",
+    serviceType: "all",
+    reservationSystem: "all"
   })
 
   const { foods: apiFoods, isLoading } = useFoods()
@@ -161,18 +163,11 @@ export default function FavoritesPage() {
       })
     }
 
-    // 営業時間フィルター
-    if (filters.operatingStatus !== "all") {
-      result = result.filter((food) => {
-        if (filters.operatingStatus === "open-now") {
-          return true // フォールバック
-        } else if (filters.operatingStatus === "open-at-time" && filters.targetTime) {
-          return true // フォールバック
-        }
-        return true
-      })
-    }
+    // サービス形態フィルター
+    result = filterByServiceType(result, apiRestaurants, filters.serviceType)
 
+    // 予約システムフィルター
+    result = filterByReservationSystem(result, apiRestaurants, filters.reservationSystem)
 
     // 価格フィルター
     result = result.filter((food) => {

@@ -242,7 +242,11 @@ export async function getRestaurants(): Promise<RestaurantInfo[]> {
       type: 'レストラン',
       description: `${restaurant.park.toUpperCase()}の${restaurant.name}`,
       specialties: [],
-      image: restaurant.image_url || '/no-image-light.png'
+      image: restaurant.image_url || '/no-image-light.png',
+      service_type: restaurant.service_type,
+      mobile_order_flag: restaurant.mobile_order_flag,
+      priority_seating_flag: restaurant.priority_seating_flag,
+      reservation_flag: restaurant.reservation_flag
     }))
   } catch (error) {
     console.error('Error in getRestaurants:', error)

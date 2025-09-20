@@ -30,6 +30,10 @@ export interface DisneyRestaurant {
   area: string
   business_hours: string
   image_url: string | null
+  service_type?: string
+  mobile_order_flag?: boolean
+  priority_seating_flag?: boolean
+  reservation_flag?: boolean
 }
 
 // フロントエンド用の変換された型
@@ -72,4 +76,8 @@ export interface RestaurantInfo {
   description?: string
   specialties?: string[]
   image: string
+  service_type?: string
+  mobile_order_flag?: boolean
+  priority_seating_flag?: boolean
+  reservation_flag?: boolean
 }
