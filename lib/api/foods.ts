@@ -39,30 +39,45 @@ export async function getCurrentFoods(): Promise<FoodItem[]> {
     const foodItems: FoodItem[] = []
 
     for (const food of foods as DisneyFood[]) {
-      // 現在販売中の期間を確認
-      const currentPeriod = food.periods?.find(period => {
-        const startDate = period.period_start
-        const endDate = period.period_end
-
-        return startDate <= today && (!endDate || endDate >= today)
-      })
-
-      if (!currentPeriod) continue
-
-      // この期間の最新のレストラン情報を取得
-      const latestRestaurantData = currentPeriod.restaurants_data?.[currentPeriod.restaurants_data.length - 1]
-      if (!latestRestaurantData) continue
-
-      const restaurant = restaurantMap.get(latestRestaurantData.restaurantID)
-      const restaurantName = restaurant?.name || 'レストラン情報なし'
-
-
-      // 期間情報を生成
+      // テスト用：全メニューを取得（periodsデータの有無に関わらず）
+      
+      // 表示用のレストラン情報を取得
+      let restaurantName = 'レストラン情報なし'
+      let restaurantId = 'unknown'
+      let parkInfo = 'unknown'
       let periodString: string | undefined
-      if (latestRestaurantData.sales_start_date && latestRestaurantData.sales_end_date) {
-        const startDate = new Date(latestRestaurantData.sales_start_date).toLocaleDateString('ja-JP')
-        const endDate = new Date(latestRestaurantData.sales_end_date).toLocaleDateString('ja-JP')
-        periodString = `${startDate}〜${endDate}`
+
+      // 全レストランの情報を収集
+      const allParks = new Set<string>()
+      
+      if (food.periods && food.periods.length > 0) {
+        // 全期間の全レストランからパーク情報を収集
+        for (const period of food.periods) {
+          for (const restaurantData of period.restaurants_data) {
+            const restaurant = restaurantMap.get(restaurantData.restaurantID)
+            if (restaurant) {
+              allParks.add(restaurant.park)
+            }
+          }
+        }
+
+        // periodsデータがある場合
+        const displayPeriod = food.periods[0] // 最初の期間を使用
+        const latestRestaurantData = displayPeriod.restaurants_data?.[displayPeriod.restaurants_data.length - 1]
+        
+        if (latestRestaurantData) {
+          const restaurant = restaurantMap.get(latestRestaurantData.restaurantID)
+          restaurantName = restaurant?.name || 'レストラン情報なし'
+          restaurantId = latestRestaurantData.restaurantID
+          parkInfo = restaurant?.park || 'unknown'
+
+          // 期間情報を生成
+          if (latestRestaurantData.sales_start_date && latestRestaurantData.sales_end_date) {
+            const startDate = new Date(latestRestaurantData.sales_start_date).toLocaleDateString('ja-JP')
+            const endDate = new Date(latestRestaurantData.sales_end_date).toLocaleDateString('ja-JP')
+            periodString = `${startDate}〜${endDate}`
+          }
+        }
       }
 
       foodItems.push({
@@ -72,9 +87,11 @@ export async function getCurrentFoods(): Promise<FoodItem[]> {
         image: food.image_url || '/no-image-light.png',
         period: periodString,
         restaurant: restaurantName,
-        park: restaurant?.park || 'unknown',
-        restaurantId: latestRestaurantData.restaurantID,
-        isFavorite: false
+        park: parkInfo,
+        restaurantId: restaurantId,
+        isFavorite: false,
+        periods: food.periods || [], // 全ての期間データを含める（なければ空配列）
+        availableParks: Array.from(allParks) // 初期状態では全パークを表示
       })
     }
 

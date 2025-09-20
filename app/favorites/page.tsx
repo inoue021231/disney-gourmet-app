@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { SearchHeader } from "@/components/search-header"
 import { FilterBar } from "@/components/filter-bar"
+import { DateFilter } from "@/components/datetime-filter"
 import { FoodList } from "@/components/food-list"
 import { FoodDetailDrawer } from "@/components/food-detail-drawer"
 import { Button } from "@/components/ui/button"
@@ -10,8 +11,11 @@ import { Heart, Trash2 } from "lucide-react"
 import { useFavoritesContext } from "@/components/favorites-context"
 import { useToast } from "@/components/toast-provider"
 import { useFoods } from "@/hooks/use-foods"
+import { useRestaurants } from "@/hooks/use-restaurants"
 import { FoodItem } from "@/lib/database.types"
 import { matchesKanaSearch } from "@/lib/kana-conversion"
+import { filterMenusByAvailability } from "@/lib/menu-availability"
+import { format } from "date-fns"
 
 // フォールバック用データ（実際のアプリではAPIから取得）
 const FALLBACK_FOODS = [
@@ -89,6 +93,7 @@ export default function FavoritesPage() {
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
   const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const { getFavoriteItems, toggleFavorite, favoriteCount, clearAllFavorites } =
     useFavoritesContext()
   const { showToast } = useToast()
@@ -101,6 +106,12 @@ export default function FavoritesPage() {
   })
 
   const { foods: apiFoods, isLoading } = useFoods()
+  const { restaurants: apiRestaurants } = useRestaurants()
+
+  // 日付フィルターのハンドラー
+  const handleDateChange = (date: Date | null) => {
+    setSelectedDate(date)
+  }
 
   const favoriteItems = useMemo(() => {
     const sourceData = apiFoods.length > 0 ? apiFoods : FALLBACK_FOODS
@@ -110,6 +121,16 @@ export default function FavoritesPage() {
 
   const filteredFavorites = useMemo(() => {
     let result = favoriteItems
+    const originalCount = result.length
+
+    // 日付フィルター（最優先）
+    // 日付が設定されている場合のみフィルタリングを実行
+    if (selectedDate !== null) {
+      const targetDate = selectedDate
+      // 時刻フィルタリングは一時的に無効化
+      result = filterMenusByAvailability(result, apiRestaurants, targetDate, undefined)
+      
+    }
 
     // 検索クエリフィルター（ひらがな・カタカナ対応）
     if (searchQuery.trim()) {
@@ -176,7 +197,7 @@ export default function FavoritesPage() {
     }
 
     return result
-  }, [favoriteItems, searchQuery, filters])
+  }, [favoriteItems, searchQuery, filters, selectedDate, apiRestaurants])
 
   const handleFavoriteToggle = (id: string) => {
     toggleFavorite(id)
@@ -217,6 +238,10 @@ export default function FavoritesPage() {
         onToggleExpanded={() => setIsFilterExpanded(!isFilterExpanded)}
         resultCount={filteredFavorites.length}
       />
+
+      <div className="container mx-auto px-4 py-4">
+        <DateFilter onDateChange={handleDateChange} />
+      </div>
 
       <main className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">

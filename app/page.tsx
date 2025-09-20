@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { SearchHeader } from "@/components/search-header"
 import { FilterBar } from "@/components/filter-bar"
+import { DateFilter } from "@/components/datetime-filter"
 import { FoodList } from "@/components/food-list"
 import { FoodDetailDrawer } from "@/components/food-detail-drawer"
 import { ResponsiveContainer } from "@/components/responsive-container"
@@ -11,9 +12,12 @@ import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import { useToast } from "@/components/toast-provider"
 import { useFavoritesContext } from "@/components/favorites-context"
 import { useFoods } from "@/hooks/use-foods"
+import { useRestaurants } from "@/hooks/use-restaurants"
 import { FoodItem } from "@/lib/database.types"
 import { parseBusinessHours, isCurrentlyOpen, isOpenAtTime, timeStringToMinutes } from "@/lib/api/foods"
 import { matchesKanaSearch } from "@/lib/kana-conversion"
+import { filterMenusByAvailability } from "@/lib/menu-availability"
+import { format } from "date-fns"
 
 // フォールバック用サンプルデータ
 const FALLBACK_FOODS = [
@@ -27,6 +31,22 @@ const FALLBACK_FOODS = [
     park: "tdl",
     restaurantId: "1",
     isFavorite: false,
+    periods: [
+      {
+        period_start: "2025-01-01",
+        period_end: null,
+        restaurants_data: [
+          {
+            get_date: "2025-01-01",
+            restaurantID: "1",
+            pause_start_date: null,
+            pause_end_date: null,
+            sales_start_date: null,
+            sales_end_date: null
+          }
+        ]
+      }
+    ]
   },
   {
     id: "2",
@@ -38,6 +58,22 @@ const FALLBACK_FOODS = [
     park: "tdl",
     restaurantId: "2",
     isFavorite: true,
+    periods: [
+      {
+        period_start: "2025-01-01",
+        period_end: "2025-12-31",
+        restaurants_data: [
+          {
+            get_date: "2025-01-01",
+            restaurantID: "2",
+            pause_start_date: null,
+            pause_end_date: null,
+            sales_start_date: null,
+            sales_end_date: null
+          }
+        ]
+      }
+    ]
   },
   {
     id: "3",
@@ -99,9 +135,11 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const { showToast } = useToast()
   const { toggleFavorite, isFavorite, getFavoriteItems, isLoaded } = useFavoritesContext()
   const { foods: apiFoods, isLoading, error, refetch } = useFoods()
+  const { restaurants: apiRestaurants } = useRestaurants()
   const [filters, setFilters] = useState<FilterState>({
     park: "all",
     area: "all",
@@ -112,16 +150,35 @@ export default function HomePage() {
 
   const itemsPerPage = 10
 
+  // 日付フィルターのハンドラー
+  const handleDateChange = (date: Date | null) => {
+    setSelectedDate(date)
+    setCurrentPage(1) // ページをリセット
+  }
+
   const foodsWithFavorites = useMemo(() => {
     if (!isLoaded) return apiFoods
-    return apiFoods.map((food) => ({
+    const foods = apiFoods.map((food) => ({
       ...food,
       isFavorite: isFavorite(food.id),
     }))
+    
+    
+    return foods
   }, [isLoaded, isFavorite, apiFoods])
 
   const filteredFoods = useMemo(() => {
     let result = foodsWithFavorites
+    const originalCount = result.length
+
+    // 日付フィルター（最優先）
+    // 日付が設定されている場合のみフィルタリングを実行
+    if (selectedDate !== null) {
+      const targetDate = selectedDate
+      // 時刻フィルタリングは一時的に無効化
+      result = filterMenusByAvailability(result, apiRestaurants, targetDate, undefined)
+      
+    }
 
     // お気に入りフィルター
     if (showFavoritesOnly) {
@@ -204,7 +261,7 @@ export default function HomePage() {
     }
 
     return result
-  }, [foodsWithFavorites, searchQuery, showFavoritesOnly, filters, getFavoriteItems])
+  }, [foodsWithFavorites, searchQuery, showFavoritesOnly, filters, getFavoriteItems, selectedDate, apiRestaurants])
 
   const totalPages = Math.ceil(filteredFoods.length / itemsPerPage)
   const paginatedFoods = filteredFoods.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -263,6 +320,10 @@ export default function HomePage() {
         onToggleExpanded={() => setIsFilterExpanded(!isFilterExpanded)}
         resultCount={filteredFoods.length}
       />
+
+      <div className="container mx-auto px-4 py-4">
+        <DateFilter onDateChange={handleDateChange} />
+      </div>
 
       <main>
         <ResponsiveContainer className="py-6">

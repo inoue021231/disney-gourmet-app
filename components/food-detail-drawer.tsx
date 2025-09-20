@@ -148,44 +148,56 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
               </div>
 
 
-              {/* レストラン情報 */}
+              {/* 提供店舗詳細 */}
               <div className="bg-card p-4 rounded-lg border border-border">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center justify-center w-5 h-5 bg-primary/10 rounded">
                     <Building2 className="w-3 h-3 text-primary" />
                   </div>
                   <span className="font-medium text-card-foreground">提供店舗</span>
                 </div>
-                <p className="text-card-foreground">{item.restaurant}</p>
-                {item.park && (
-                  <p className="text-sm font-medium text-primary mt-2">
-                    {item.park === 'tdl' ? '東京ディズニーランド' : '東京ディズニーシー'}
-                  </p>
+                
+                {/* 販売中のレストラン詳細一覧 */}
+                {item.availableRestaurantDetails && item.availableRestaurantDetails.length > 0 ? (
+                  <div className="space-y-3">
+                    {item.availableRestaurantDetails.map((restaurant, index) => (
+                      <div key={index} className="bg-muted/30 p-3 rounded-lg">
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-card-foreground font-medium">{restaurant.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-primary">
+                              {(restaurant.park.toLowerCase() === 'tdl' || restaurant.park.toUpperCase() === 'TDL') ? '東京ディズニーランド' : '東京ディズニーシー'}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-card-foreground">営業時間</span>
+                            <p className="text-sm text-card-foreground">{restaurant.business_hours}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-card-foreground font-medium">{item.restaurant}</p>
+                      </div>
+                      {item.park && (
+                        <div>
+                          <p className="text-sm text-primary">
+                            {(item.park.toLowerCase() === 'tdl' || item.park.toUpperCase() === 'TDL') ? '東京ディズニーランド' : '東京ディズニーシー'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* 提供期間 */}
-              {item.period && (
-                <div className="bg-accent/10 p-4 rounded-lg border border-accent/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="w-4 h-4 text-accent" />
-                    <span className="font-medium text-foreground">提供期間:</span>
-                  </div>
-                  <p className="text-foreground">{item.period}</p>
-                </div>
-              )}
 
-              {/* 営業時間（サンプル） */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex items-center justify-center w-5 h-5 bg-accent/20 rounded">
-                    <Timer className="w-3 h-3 text-accent" />
-                  </div>
-                  <span className="font-medium text-foreground">営業時間</span>
-                </div>
-                <p className="text-foreground text-sm">9:00 - 21:00（ラストオーダー 20:30）</p>
-                <p className="text-foreground text-sm mt-1">※営業時間は変更になる場合があります</p>
-              </div>
             </div>
 
             {/* アクションボタン */}
@@ -205,6 +217,7 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
                 <Heart className={`w-4 h-4 ${isFavorite(item.id) ? "fill-current text-accent" : ""}`} />
                 {isFavorite(item.id) ? "お気に入りから削除" : "お気に入りに追加"}
               </Button>
+
             </div>
           </div>
         </div>

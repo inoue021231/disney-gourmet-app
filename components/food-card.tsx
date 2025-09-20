@@ -80,17 +80,24 @@ export function FoodCard({ item, onFavoriteToggle, onCardClick }: FoodCardProps)
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground truncate">{item.restaurant}</p>
-            {item.park && (
+            {/* 販売中のパーク情報を表示 */}
+            {item.availableParks && item.availableParks.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {item.availableParks.map((park, index) => (
+                  <p key={index} className="text-xs font-medium text-primary">
+                    {(park.toLowerCase() === 'tdl' || park.toUpperCase() === 'TDL') ? '東京ディズニーランド' : '東京ディズニーシー'}
+                  </p>
+                ))}
+              </div>
+            ) : item.park ? (
               <p className="text-xs font-medium text-primary">
-                {item.park === 'tdl' ? '東京ディズニーランド' : '東京ディズニーシー'}
+                {(item.park.toLowerCase() === 'tdl' || item.park.toUpperCase() === 'TDL') ? '東京ディズニーランド' : '東京ディズニーシー'}
               </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">パーク情報なし</p>
             )}
           </div>
 
-          {item.period && (
-            <p className="text-xs text-muted-foreground bg-accent/10 px-2 py-1 rounded">提供期間: {item.period}</p>
-          )}
         </div>
 
         <div className="pt-2 mt-auto">

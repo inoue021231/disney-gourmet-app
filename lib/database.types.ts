@@ -43,6 +43,23 @@ export interface FoodItem {
   park?: string
   restaurantId?: string
   isFavorite?: boolean
+  periods?: Period[]
+  availableRestaurants?: string[]
+  availableRestaurantNames?: string[]
+  availableParks?: string[]
+  availableRestaurantDetails?: {
+    id: string
+    name: string
+    park: string
+    business_hours: string
+  }[]
+  debugInfo?: {
+    hasPeriodsData: boolean
+    periodsCount: number
+    availabilityStatus: string
+    checkedDate?: string
+    checkedTime?: string
+  }
 }
 
 export interface RestaurantInfo {
