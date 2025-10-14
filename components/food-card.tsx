@@ -73,33 +73,9 @@ export function FoodCard({ item, onFavoriteToggle, onCardClick }: FoodCardProps)
       </div>
 
       <CardContent className="p-4 h-full flex flex-col">
-        <div className="flex-1 space-y-3">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-card-foreground line-clamp-2 leading-tight break-words">{item.title}</h3>
-            <p className="text-lg font-bold text-primary">{item.price}</p>
-          </div>
-
-          <div className="space-y-1">
-            {/* 販売中のパーク情報を表示 */}
-            {item.availableParks && item.availableParks.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {item.availableParks.map((park, index) => (
-                  <p key={index} className="text-xs font-medium text-primary">
-                    {(park.toLowerCase() === 'tdl' || park.toUpperCase() === 'TDL') ? '東京ディズニーランド' : '東京ディズニーシー'}
-                  </p>
-                ))}
-              </div>
-            ) : item.park ? (
-              <p className="text-xs font-medium text-primary">
-                {(item.park.toLowerCase() === 'tdl' || item.park.toUpperCase() === 'TDL') ? '東京ディズニーランド' : '東京ディズニーシー'}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">パーク情報なし</p>
-            )}
-          </div>
-
+        <div className="flex-1">
+          <h3 className="font-semibold text-card-foreground line-clamp-2 leading-tight break-words">{item.title}</h3>
         </div>
-
       </CardContent>
     </Card>
   )
