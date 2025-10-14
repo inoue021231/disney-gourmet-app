@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { X, Heart, ExternalLink, MapPin, Calendar, Timer, Building2 } from "lucide-react"
 import { useFavoritesContext } from "@/components/favorites-context"
@@ -16,8 +16,14 @@ interface FoodDetailDrawerProps {
 export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState(0)
   const { toggleFavorite, isFavorite } = useFavoritesContext()
   const { showToast } = useToast()
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const startY = useRef(0)
+  const currentY = useRef(0)
 
   useEffect(() => {
     if (isOpen) {
@@ -26,6 +32,9 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
       setImageError(false)
     } else {
       document.body.style.overflow = "unset"
+      // ドロワーが閉じられた時にドラッグ状態をリセット
+      setIsDragging(false)
+      setDragOffset(0)
     }
 
     return () => {
@@ -40,20 +49,100 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
       }
     }
 
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      
+      currentY.current = e.clientY
+      const deltaY = currentY.current - startY.current
+      
+      if (deltaY > 0) {
+        setDragOffset(deltaY)
+      }
+    }
+
+    const handleGlobalMouseUp = () => {
+      if (!isDragging) return
+      
+      setIsDragging(false)
+      
+      const threshold = 100
+      if (dragOffset > threshold) {
+        onClose()
+      }
+      
+      setDragOffset(0)
+    }
+
     if (isOpen) {
       document.addEventListener("keydown", handleEscape)
+      document.addEventListener("mousemove", handleGlobalMouseMove)
+      document.addEventListener("mouseup", handleGlobalMouseUp)
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape)
+      document.removeEventListener("mousemove", handleGlobalMouseMove)
+      document.removeEventListener("mouseup", handleGlobalMouseUp)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, isDragging, dragOffset])
 
   const handleFavoriteToggle = () => {
     if (!item) return
     const wasLiked = isFavorite(item.id)
     toggleFavorite(item.id)
     showToast(wasLiked ? "お気に入りから削除しました" : "お気に入りに追加しました", "success")
+  }
+
+  // タッチイベントハンドラー
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!contentRef.current) return
+    
+    // コンテンツがスクロール位置の最上部にある場合のみドラッグを開始
+    if (contentRef.current.scrollTop === 0) {
+      setIsDragging(true)
+      startY.current = e.touches[0].clientY
+      currentY.current = e.touches[0].clientY
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !contentRef.current) return
+    
+    currentY.current = e.touches[0].clientY
+    const deltaY = currentY.current - startY.current
+    
+    // 下方向のドラッグのみ許可
+    if (deltaY > 0) {
+      setDragOffset(deltaY)
+      // ドラッグ中はスクロールを防止
+      e.preventDefault()
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return
+    
+    setIsDragging(false)
+    
+    // ドラッグ距離が閾値を超えた場合は閉じる
+    const threshold = 100
+    if (dragOffset > threshold) {
+      onClose()
+    }
+    
+    // リセット
+    setDragOffset(0)
+  }
+
+  // マウスイベントハンドラー（デスクトップ対応）
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!contentRef.current) return
+    
+    if (contentRef.current.scrollTop === 0) {
+      setIsDragging(true)
+      startY.current = e.clientY
+      currentY.current = e.clientY
+    }
   }
 
   if (!item) return null
@@ -70,10 +159,18 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
 
       {/* ドロワー */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-xl shadow-2xl transition-transform duration-250 ease-out ${
-          isOpen ? "translate-y-0" : "translate-y-full"
-        }`}
-        style={{ maxHeight: "90vh" }}
+        ref={drawerRef}
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-xl shadow-2xl ${
+          isDragging ? "" : "transition-transform duration-250 ease-out"
+        } ${isOpen ? "translate-y-0" : "translate-y-full"}`}
+        style={{ 
+          maxHeight: "90vh",
+          transform: isDragging ? `translateY(${dragOffset}px)` : undefined
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
       >
         {/* ハンドル */}
         <div className="flex justify-center pt-2 pb-1">
@@ -89,7 +186,11 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
         </div>
 
         {/* コンテンツ */}
-        <div className="overflow-y-auto" style={{ maxHeight: "calc(90vh - 80px)" }}>
+        <div 
+          ref={contentRef}
+          className="overflow-y-auto" 
+          style={{ maxHeight: "calc(90vh - 80px)" }}
+        >
           <div className="p-4 space-y-6">
             {/* メイン画像 */}
             <div className="aspect-[4/3] relative overflow-hidden bg-muted rounded-lg">
