@@ -73,9 +73,7 @@ export function FoodCard({ item, onFavoriteToggle, onCardClick }: FoodCardProps)
       </div>
 
       <CardContent className="p-4 h-full flex flex-col">
-        <div className="flex-1">
-          <h3 className="font-semibold text-card-foreground line-clamp-2 leading-tight break-words">{item.title}</h3>
-        </div>
+        <h3 className="font-semibold text-card-foreground line-clamp-2 leading-tight break-words">{item.title}</h3>
       </CardContent>
     </Card>
   )

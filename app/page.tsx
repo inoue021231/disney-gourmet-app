@@ -151,7 +151,7 @@ export default function HomePage() {
     reservationSystem: "all"
   })
 
-  const itemsPerPage = 10
+  const itemsPerPage = 20
 
   // 日付フィルターのハンドラー
   const handleDateChange = (date: Date | null) => {
