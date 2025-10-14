@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { X, Heart, ExternalLink, MapPin, Calendar, Timer, Building2 } from "lucide-react"
+import { X, Heart, MapPin, Calendar, Timer, Building2 } from "lucide-react"
 import { useFavoritesContext } from "@/components/favorites-context"
 import { useToast } from "@/components/toast-provider"
 import { FoodItem } from "@/lib/database.types"
@@ -202,13 +202,6 @@ export function FoodDetailDrawer({ item, isOpen, onClose }: FoodDetailDrawerProp
 
             {/* アクションボタン */}
             <div className="space-y-3 pb-20">
-              <Button className="w-full flex items-center gap-2 h-12" onClick={() => window.open(`https://www.tokyodisneyresort.jp/food/${item.id}/`, "_blank")}>
-                <div className="flex items-center justify-center w-4 h-4 bg-primary/10 rounded">
-                  <ExternalLink className="w-3 h-3 text-primary" />
-                </div>
-                公式サイト
-              </Button>
-
               <Button
                 variant="outline"
                 className="w-full flex items-center gap-2 h-12 bg-transparent"

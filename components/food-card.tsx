@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Heart, ExternalLink } from "lucide-react"
+import { Heart } from "lucide-react"
 import { useState } from "react"
 import { FoodItem } from "@/lib/database.types"
 
@@ -100,22 +100,6 @@ export function FoodCard({ item, onFavoriteToggle, onCardClick }: FoodCardProps)
 
         </div>
 
-        <div className="pt-2 mt-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full flex items-center gap-2 bg-transparent hover:bg-primary/5 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation()
-              window.open(`https://www.tokyodisneyresort.jp/food/${item.id}/`, "_blank")
-            }}
-          >
-            <div className="flex items-center justify-center w-4 h-4 bg-primary/10 rounded">
-              <ExternalLink className="w-2.5 h-2.5 text-primary" />
-            </div>
-            公式サイト
-          </Button>
-        </div>
       </CardContent>
     </Card>
   )
