@@ -169,7 +169,7 @@ export default function RestaurantsPage() {
 
             <div className="space-y-3">
               {/* 第1行: パーク・エリア・営業状況 */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
                 <Select value={selectedPark} onValueChange={handleParkChange}>
                   <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue placeholder="パーク" />
@@ -298,7 +298,7 @@ export default function RestaurantsPage() {
           <>
             <div className={`grid gap-6 ${
               isMobile 
-                ? 'grid-cols-2'
+                ? 'grid-cols-3'
                 : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
             }`}>
               {paginationData.paginatedRestaurants.map((restaurant) => (

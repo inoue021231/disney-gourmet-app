@@ -16,9 +16,9 @@ interface FoodListProps {
 export function FoodList({ foods, onFavoriteToggle, onCardClick, isLoading, className }: FoodListProps) {
   const isMobile = useMobileDetection()
   
-  // モバイルでは2列表示、デスクトップでは横幅いっぱいに表示
+  // モバイルでは3列表示、デスクトップでは横幅いっぱいに表示
   const gridClasses = isMobile 
-    ? 'grid-cols-2'
+    ? 'grid-cols-3'
     : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
 
   if (isLoading) {
